@@ -57,29 +57,6 @@ RtcDS3231<TwoWire> Rtc(Wire);
 String datetime;
 String timeonly;
 
-//Button
-#include <Button.h>
-int okKeypad = 4, upKeypad = 5, downKeypad = 6, cancelKeypad = 7, state;
-char* cmd;
-enum menu {
-  awal,
-  menuph7,
-  menuph4,
-  menuEC,
-  calph7,
-  calph4,
-  calEC,
-  notifph7,
-  notifph4,
-  notifEC,
-};
-
-//defining read button
-#define ok !digitalRead(okKeypad)
-#define cancel !digitalRead(cancelKeypad)
-#define up !digitalRead(upKeypad)
-#define down !digitalRead(downKeypad)
-
 String kirim, kondisi;
 int pHrelaypin = 31, ECrelaypin = 29, pomparelay = 27, h;
 
@@ -92,13 +69,6 @@ void setup() {
   Serial.begin(9600);
   Serial3.begin(115200);
 
-  //Button
-  //Set button as INPUT
-  pinMode(okKeypad, INPUT_PULLUP);
-  pinMode(cancelKeypad, INPUT_PULLUP);
-  pinMode(downKeypad, INPUT_PULLUP);
-  pinMode(upKeypad, INPUT_PULLUP);
-
   //LCD
   lcd.init();
   lcd.backlight();
@@ -109,6 +79,9 @@ void setup() {
 
   //RTC ds3231
   Rtc.Begin();
+#if defined(WIRE_HAS_TIMEOUT)
+    Wire.setWireTimeout(3000 /* us */, true /* reset_on_timeout */);
+#endif
   RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
   printDateTime(compiled);
   Serial.println();
@@ -157,12 +130,9 @@ void setup() {
   relay(1, 1, 1);  // relay aktif low
   waktuku();
   homeDisplay();
-  // randomSeed(analogRead(0));
-  state = awal;
 }
 
 void loop() {
-
   waktuku();
   displayLcd();
   relay(1, 1, 1);
@@ -175,7 +145,7 @@ void loop() {
   jsn();
 
 
-  if (minutes == 3) {  //sampling 10 mnt sekali
+  if (minutes == 10) {  //sampling 10 mnt sekali
     Serial.println("program jalan");
 
     h = 0;
@@ -310,6 +280,7 @@ void PH() {
   //temperature = readTemperature();         // read your temperature sensor to execute temperature compensation
   voltage = analogRead(PH_PIN) / 1024.0 * 5000;  // read the voltage
   phValue = ph.readPH(voltage, temperatureds);   // convert voltage to pH with temperature compensation
+  delay(100);
   Serial.print("pH:");
   Serial.println(phValue);
 }
@@ -321,6 +292,7 @@ void DSTEMP() {
   if (temperatureds <= 0) {
     temperatureds = 0;
   }
+  delay(100);
   Serial.print("temperature: ");
   Serial.println(temperatureds);
 }
@@ -333,6 +305,7 @@ void EC() {
   //temperature = readTemperature();  // read your temperature sensor to execute temperature compensation
   ecValue = ec.readEC(voltage, temperatureds);  // convert voltage to EC with temperature compensation
   tds_val = ecValue * 538;
+  delay(100);
   Serial.print("EC:");
   Serial.print(ecValue);
   Serial.println("ms/cm");
