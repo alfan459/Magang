@@ -25,7 +25,7 @@ DFRobot_PH ph;
 //bh1750
 #include <BH1750.h>
 BH1750 lightMeter(0x23);
-unsigned int lux;
+int lux;
 
 //sht21
 #include <SHT21.h>  //SHT21 and LCD ic libraries
@@ -199,10 +199,6 @@ void loop() {
       Serial.println(h);
       displayLcd();
     }
-    digitalWrite(pomparelay, HIGH);
-    digitalWrite(ECrelaypin, HIGH);
-
-
     h = 0;
     displayLcd();
     kirim_data();
@@ -284,6 +280,7 @@ void sutemp() {
 }
 void jsn() {
   level_air = sonar.ping_cm();
+  delay(1000);
   //  level_air = 120 - level_air;
   //  if (level_air >= 120 || level_air <= 40)
   //  {
@@ -385,12 +382,14 @@ void displayLcd() {
   lcd.setCursor(11, 0);
   lcd.print(timeonly);
   lcd.setCursor(0, 1);
-  lcd.print("Lx: ");
+  lcd.print("Lx:");
+  lcd.setCursor(3,1);
   lcd.print(lux);
   lcd.setCursor(11, 1);
   lcd.print("GT:");
   lcd.print(Temp);
   lcd.print((char)223);
+  lcd.print("C");
   lcd.setCursor(0, 2);
   lcd.print("pH:");
   lcd.print(phValue);
